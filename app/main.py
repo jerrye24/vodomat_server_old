@@ -21,6 +21,7 @@ async def init_db(app):
         minsize=conf['minsize'],
         maxsize=conf['maxsize'],
         autocommit=True,
+        charset='utf8',
     )
     app['db'] = engine
 
