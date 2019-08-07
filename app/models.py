@@ -9,7 +9,7 @@ inbox_http = Table(
     'inbox_http', metadata,
 
     Column('id', Integer, primary_key=True),
-    Column('timestatmp', Integer),
+    Column('timestamp', Integer),
     Column('text', String(48)),
     Column('processed', Integer)
 )
@@ -18,7 +18,12 @@ avtomat = Table(
     'avtomat', metadata,
 
     Column('number', Integer, primary_key=True),
-    Column('address', String(50))
+    Column('address', String(50)),
+    Column('inv_num', Integer),
+    Column('ph_number', String(13)),
+    Column('driver', String(50)),
+    Column('route', String(50)),
+    Column('competitors', String(3))
 )
 
 status = Table(
@@ -72,13 +77,16 @@ avtomat_coll_table = Table(
 
 
 async def write_data_to_tables(conn, data_from_avtomat):
-    query_get_avtomat = await conn.execute(avtomat.select().where(avtomat.c.nunber==data_from_avtomat['number']))
-    avtomat = await query_get_avtomat.first()
-    if not avtomat:
-        await conn.execute(avtomat.insert().values(number=data_from_avtomat['number'], address=f"New {data_from_avtomat['number']}"))
+    query_get_avtomat = await conn.execute(avtomat.select().where(avtomat.c.number==data_from_avtomat['number']))
+    current_avtomat = await query_get_avtomat.first()
+    if not current_avtomat:
+        await conn.execute(avtomat.insert().\
+            values(number=data_from_avtomat['number'], address=f"New {data_from_avtomat['number']}",
+                   inv_num=data_from_avtomat['number'], ph_number='',
+                   driver='', route='', competitors='нет'))
     query_get_status = await conn.execute(status.select().where(status.c.number==data_from_avtomat['number']))
-    status = await query_get_status.first()
-    if not status:
+    current_status = await query_get_status.first()
+    if not current_status:
         await conn.execute(status.insert().\
             values(number=data_from_avtomat['number'], timestamp=int(time.time()),
                    water_balance=data_from_avtomat['water_balance'],
@@ -103,9 +111,8 @@ async def write_data_to_tables(conn, data_from_avtomat):
                how_money=data_from_avtomat['how_money'], water_price=data_from_avtomat['water_price'],
                ev_water=data_from_avtomat['ev_water'], ev_bill=data_from_avtomat['ev_bill'],
                ev_volt=data_from_avtomat['ev_volt'], ev_counter_water=data_from_avtomat['ev_counter_water'],
-               ev_register=data_from_avtomat['ev_register'], time_to_block=data_from_avtomat['time_to_block'],
-               grn=data_from_avtomat['grn'], kop=data_from_avtomat['kop'],
-               event=data_from_avtomat['event']))
+               ev_register=data_from_avtomat['ev_register'], grn=data_from_avtomat['grn'],
+               kop=data_from_avtomat['kop'], event=data_from_avtomat['event']))
     await conn.execute('commit')
 
 
