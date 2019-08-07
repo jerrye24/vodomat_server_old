@@ -19,7 +19,8 @@ async def init_db(app):
         host=conf['host'],
         port=conf['port'],
         minsize=conf['minsize'],
-        maxsize=conf['maxsize']
+        maxsize=conf['maxsize'],
+        autocommit=True,
     )
     app['db'] = engine
 

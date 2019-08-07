@@ -113,17 +113,14 @@ async def write_data_to_tables(conn, data_from_avtomat):
                ev_volt=data_from_avtomat['ev_volt'], ev_counter_water=data_from_avtomat['ev_counter_water'],
                ev_register=data_from_avtomat['ev_register'], grn=data_from_avtomat['grn'],
                kop=data_from_avtomat['kop'], event=data_from_avtomat['event']))
-    await conn.execute('commit')
 
 
 async def write_collection(conn, data_from_avtomat):
     query = avtomat_coll_table.insert().values(number=data_from_avtomat['number'], how_money=data_from_avtomat['how_money'],
                                                event=data_from_avtomat['event'], timestamp=int(time.time()))
     await conn.execute(query)
-    await conn.execute('commit')
 
 
 async def write_line_to_inbox_http(conn, line):
     query = inbox_http.insert().values(timestamp=int(time.time()), text=line, processed=0)
     await conn.execute(query)
-    await conn.execute('commit')
