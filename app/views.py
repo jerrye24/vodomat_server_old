@@ -18,7 +18,7 @@ def get_event(number_of_event):
         12: 'Вскрытие',
         13: '12 часов',
     }
-    return events.get(number_of_event, 'error')
+    return events.get(number_of_event, number_of_event)
 
 
 def get_error(error):
@@ -44,11 +44,8 @@ def parsing_line(line):
     data['grn'] = int(line[32:36])
     data['kop'] = int(line[36:40])
     data['event'] = get_event(int(line[46:48]))
+    data['error'] = 0 if any([int(line[40]), int(line[42]), int(line[41]), int(line[43]), int(line[44])]) else 1
     return data
-    
-
-async def index(request):
-    return web.Response(text='500')
 
 
 async def get_data(request):
@@ -67,3 +64,6 @@ async def get_data(request):
     else:
         return web.Response(text='500')
 
+
+async def index(request):
+    return web.Response(text=500)

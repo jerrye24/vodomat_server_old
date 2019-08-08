@@ -95,7 +95,7 @@ async def write_data_to_tables(conn, data_from_avtomat):
                    ev_volt=data_from_avtomat['ev_volt'], ev_counter_water=data_from_avtomat['ev_counter_water'],
                    ev_register=data_from_avtomat['ev_register'], time_to_block=data_from_avtomat['time_to_block'],
                    grn=data_from_avtomat['grn'], kop=data_from_avtomat['kop'],
-                   event=data_from_avtomat['event'], error=1))
+                   event=data_from_avtomat['event'], error=data_from_avtomat['error']))
     else:
         await conn.execute(status.update().where(status.c.number==data_from_avtomat['number']).\
             values(timestamp=int(time.time()), water_balance=data_from_avtomat['water_balance'],
@@ -104,7 +104,7 @@ async def write_data_to_tables(conn, data_from_avtomat):
                    ev_volt=data_from_avtomat['ev_volt'], ev_counter_water=data_from_avtomat['ev_counter_water'],
                    ev_register=data_from_avtomat['ev_register'], time_to_block=data_from_avtomat['time_to_block'],
                    grn=data_from_avtomat['grn'], kop=data_from_avtomat['kop'],
-                   event=data_from_avtomat['event'], error=1))
+                   event=data_from_avtomat['event'], error=data_from_avtomat['error']))
     await conn.execute(avtomat_log_table.insert().\
         values(number=data_from_avtomat['number'], timestamp=int(time.time()),
                water_balance=data_from_avtomat['water_balance'],
