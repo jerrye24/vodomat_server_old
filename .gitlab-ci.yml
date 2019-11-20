@@ -5,6 +5,7 @@ stages:
 
 create_stage:
   stage: create_stage_environment
+  image: hashicorp/terraform:light
   script: "terraform init; terraform apply -input=false"
 
 setup_stage:
