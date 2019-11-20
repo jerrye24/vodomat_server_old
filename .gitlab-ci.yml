@@ -1,3 +1,6 @@
+before_script:
+  - echo $SERVICEACCOUNT | base64 -d > ./vodomat_key.json
+
 stages:
   - create_stage_environment
   - test
@@ -12,7 +15,7 @@ create_stage:
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
     - pwd
-    - ls
+    - ls -a
     - terraform init
     - terraform apply -input=false
 
