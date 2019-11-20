@@ -1,5 +1,6 @@
 before_script:
   - echo $SERVICEACCOUNT | base64 -d > ./vodomat_key.json
+  - echo $SSH_PUBLIC_KEY > ~/.ssh/vodomat.pub
 
 stages:
   - create_stage_environment
