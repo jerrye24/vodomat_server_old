@@ -16,6 +16,11 @@ create_stage:
     - echo $SSH_PUBLIC_KEY > ~/.ssh/vodomat.pub
     - terraform init
     - terraform apply -auto-approve
+  artifacts:
+    paths:
+      - terraform.tfstate
+      - .terraform
+    expire_in: 1 day
 
 setup_stage:
   stage: create_stage_environment
