@@ -1,8 +1,3 @@
-before_script:
-  - echo $SERVICEACCOUNT | base64 -d > ./vodomat_key.json
-  - mkdir ~/.ssh
-  - echo $SSH_PUBLIC_KEY > ~/.ssh/vodomat.pub
-
 stages:
   - create_stage_environment
   - test
@@ -16,8 +11,9 @@ create_stage:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
-    - pwd
-    - ls -a
+    - echo $SERVICEACCOUNT | base64 -d > ./vodomat_key.json
+    - mkdir ~/.ssh
+    - echo $SSH_PUBLIC_KEY > ~/.ssh/vodomat.pub
     - terraform init
     - terraform apply -auto-approve
 
@@ -35,5 +31,7 @@ test_api:
 
 delete_stage:
   stage: delete_stage_environment
-  script: echo "Delete"
+  script:
+    - echo $SERVICEACCOUNT | base64 -d > ./vodomat_key.json
+    - terraform destroy -auto-approve
   when: manual
