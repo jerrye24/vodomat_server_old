@@ -19,7 +19,7 @@ create_stage:
     - pwd
     - ls -a
     - terraform init
-    - terraform apply -input=false
+    - terraform apply -auto-approve
 
 setup_stage:
   stage: create_stage_environment
