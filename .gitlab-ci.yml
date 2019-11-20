@@ -5,7 +5,11 @@ stages:
 
 create_stage:
   stage: create_stage_environment
-  image: hashicorp/terraform:light
+  image: 
+    name: hashicorp/terraform:light
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
     - pwd
     - ls
