@@ -1,13 +1,16 @@
 from aiohttp import web
 from aiomysql.sa import create_engine
-from views import index, get_data
+from views import index, get_data, list_statuses
 from settings import config
 import argparse
 
 parser = argparse.ArgumentParser(description='vodomat server old')
 parser.add_argument('--port')
 parser.add_argument('--path')
-routes = [web.get('/', index), web.get('/ufkc721.php', get_data)]
+
+routes = [web.route('GET', '/', index),
+          web.route('GET', '/ufkc721.php', get_data),
+          web.route('GET', '/api/v1/status', list_statuses)]
 
 
 async def init_db(app):

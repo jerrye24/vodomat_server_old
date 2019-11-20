@@ -1,0 +1,25 @@
+stages:
+  - create_stage_environment
+  - test
+  - delete_stage_environment
+
+create_stage:
+  stage: create_stage_environment
+  script: "terraform init; terraform apply -input=false"
+
+setup_stage:
+  stage: create_stage_environment
+  script: echo "Set Up"
+
+test_application:
+  stage: test
+  script: echo "Test app"
+
+test_api:
+  stage: test
+  script: echo "Test api"
+
+delete_stage:
+  stage: delete_stage_environment
+  script: echo "Delete"
+  when: manual

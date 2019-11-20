@@ -1,4 +1,8 @@
 .vscode/
+.idea/
 venv/
-app/__pycache__/
+__pycache__/
 vodomat_server_old.yaml
+vodomat_key.json
+.terraform/
+*terraform.*
