@@ -23,7 +23,7 @@ create_stage:
 
 setup_stage:
   stage: create_stage_environment
-  script: echo "Set up"
+  script: echo "Set Up"
 
 test_application:
   stage: test
