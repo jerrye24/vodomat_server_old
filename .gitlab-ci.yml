@@ -28,7 +28,7 @@ setup_stage:
   image:
     name: ansible/centos7-ansible:latest
   script: 
-    - export SERVER_EXTERNAL_IP = $(cat server_external_ip)
+    - SERVER_EXTERNAL_IP=$(cat server_external_ip)
     - ansible -i $SERVER_EXTERNAL_IP -a ping
   dependencies:
     - create_stage
