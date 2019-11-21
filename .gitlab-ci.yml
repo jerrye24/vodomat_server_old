@@ -20,7 +20,7 @@ create_stage:
     paths:
       - terraform.tfstate
       - .terraform
-    expire_in: 1 day
+    expire_in: 3 day
 
 setup_stage:
   stage: create_stage_environment
