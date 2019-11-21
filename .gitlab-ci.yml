@@ -27,8 +27,6 @@ setup_stage:
   script: 
     - SERVER_EXTERNAL_IP = $(cat server_external_ip)
     - ansible-playbook -i $SERVER_EXTERNAL_IP -a ping
-  dependencies:
-    - create_stage
 
 test_application:
   stage: test
