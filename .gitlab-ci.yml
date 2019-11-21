@@ -5,8 +5,10 @@ stages:
 
 create_stage:
   stage: create_stage_environment
-  tags:
-    - terraform
+  image:
+    name: hashicorp/terraform:light
+    entrypoint:
+      - /usr/bin/env
   script:
     - echo $SERVICEACCOUNT | base64 -d > vodomat_key.json
     - echo $SSH_PUBLIC_KEY > vodomat.pub
@@ -22,8 +24,8 @@ create_stage:
 
 setup_stage:
   stage: create_stage_environment
-  tags:
-    - ansible
+  image:
+    name: ansible/centos7-ansible:latest
   script: 
     - SERVER_EXTERNAL_IP = $(cat server_external_ip)
     - ansible-playbook -i $SERVER_EXTERNAL_IP -a ping
