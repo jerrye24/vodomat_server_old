@@ -43,5 +43,7 @@ delete_stage:
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
     - echo $SERVICEACCOUNT | base64 -d > ./vodomat_key.json
+    - mkdir ~/.ssh
+    - echo $SSH_PUBLIC_KEY > ~/.ssh/vodomat.pub
     - terraform destroy -auto-approve
   when: manual
