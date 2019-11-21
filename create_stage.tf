@@ -47,10 +47,6 @@ resource "google_compute_instance" "server" {
     }
 
     metadata_startup_script = "sudo apt update; sudo apt install -y python-minimal"
-
-    metadata = {
-        ssh-keys = "jerrye:${file("~/.ssh/vodomat.pub")}"
-    }
 }
 
 resource "google_dns_managed_zone" "stage-zone" {
