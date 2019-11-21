@@ -36,6 +36,11 @@ test_api:
 
 delete_stage:
   stage: delete_stage_environment
+  image:
+    name: hashicorp/terraform:light
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
     - echo $SERVICEACCOUNT | base64 -d > ./vodomat_key.json
     - terraform destroy -auto-approve
