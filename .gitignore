@@ -6,3 +6,4 @@ vodomat_server_old.yaml
 vodomat_key.json
 .terraform/
 *terraform.*
+*.pub

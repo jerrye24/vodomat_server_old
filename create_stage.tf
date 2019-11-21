@@ -47,6 +47,10 @@ resource "google_compute_instance" "server" {
     }
 
     metadata_startup_script = "sudo apt update; sudo apt install -y python-minimal"
+
+    metadata = {
+        ssh-keys = "jerrye:${file("vodomat.pub")}"
+    }
 }
 
 resource "google_dns_managed_zone" "stage-zone" {
@@ -60,4 +64,8 @@ resource "google_dns_record_set" "server" {
     ttl = 300
     managed_zone = "${google_dns_managed_zone.stage-zone.name}"
     rrdatas = ["${google_compute_instance.server.network_interface.0.access_config.0.nat_ip}"]
+}
+
+output "server_external_ip" {
+    value = "${google_compute_instance.server.network_interface.0.access_config.0.nat_ip}"
 }
