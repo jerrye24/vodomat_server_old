@@ -20,6 +20,8 @@ create_stage:
     paths:
       - terraform.tfstate
       - .terraform
+      - ./vodomat_key.json
+      - ~/.ssh/vodomat.pub
     expire_in: 3 day
 
 setup_stage:
