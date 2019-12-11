@@ -59,8 +59,8 @@
 
     - name: Setting nginx config
       template:
-        src: stage.voda.v7.ua.j2
-        dest: /etc/nginx/conf.d/stage.voda.v7.ua.conf
+        src: voda.v7.ua.j2
+        dest: /etc/nginx/conf.d/voda.v7.ua.conf
         mode: 0644
       notify: restart nginx
 
