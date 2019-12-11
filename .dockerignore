@@ -1,0 +1,5 @@
+__pycache__/
+.ci/
+.vscode/
+venv/
+vodomat_server_old.yaml

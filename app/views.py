@@ -67,25 +67,3 @@ async def get_data(request):
                 return web.Response(text='error')
     else:
         return web.Response(text='500')
-
-
-# API V1 -------------------------------------------------------------------------------------------------
-async def list_statuses(request):
-    if request.method == 'GET':
-        async with request.app['db'].acquire() as conn:
-            statuses = await models.get_statuses(conn)
-        statuses_to_show = [dict(s) for s in statuses]
-        number = request.rel_url.query.get('number')
-        if number:
-            statuses_to_show = [dict(s) for s in statuses_to_show if int(number) == s['number']]
-        from_status = request.rel_url.query.get('from')
-        to_status = request.rel_url.query.get('to')
-        if from_status and to_status:
-            from_status = int(from_status)
-            to_status = int(to_status)
-            statuses_to_show = statuses_to_show[from_status:to_status]
-        fields = request.rel_url.query.get('fields')
-        if fields:
-            fields = fields.split(',')
-            statuses_to_show = [{k: v for k, v in s.items() if k in fields} for s in statuses_to_show]
-        return web.json_response(statuses_to_show)

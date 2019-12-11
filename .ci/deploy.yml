@@ -1,0 +1,219 @@
+---
+- hosts: vodomat_server_old
+  become: true
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=restarted
+
+  tasks:
+    - name: Upgrade all packages
+      yum:
+        name: '*'
+        state: latest
+    
+    - name: Install requirements packages
+      yum:
+        name:
+          - firewalld
+          - epel-release
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    - name: Start firewall and enable it on reboot
+      service: name=firewalld state=started enabled=true
+
+    - name: Open ssh firewall port
+      firewalld:
+        service: ssh
+        immediate: yes
+        permanent: true
+        state: enabled
+
+    - name: Open http firewall port
+      firewalld:
+        service: http
+        immediate: yes
+        permanent: true
+        state: enabled
+
+    - name: Open mysql firewall port
+      firewalld:
+        rich_rule: 'rule family=ipv4 source address="{{ firewall_address_accept }}" service name="mysql" accept'
+        immediate: yes
+        permanent: true
+        state: enabled
+
+    - name: Disable selinux
+      selinux:
+        state: disabled
+
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: present
+        
+    - name: Start nginx and enable it on reboot
+      service: name=nginx state=started enabled=true
+
+    - name: Setting nginx config
+      template:
+        src: stage.voda.v7.ua.j2
+        dest: /etc/nginx/conf.d/stage.voda.v7.ua.conf
+        mode: 0644
+      notify: restart nginx
+
+    - name: Install redis
+      yum:
+        name: redis
+        state: present
+
+    - name: Start redis and enable it on reboot
+      service: name=redis state=started enabled=true
+
+    - name: Add mariadb repository
+      yum_repository:
+        name: MariaDB
+        description: Official MariaDB repository
+        baseurl: http://yum.mariadb.org/10.1/centos7-amd64
+        gpgkey: https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+        gpgcheck: true
+
+    - name: Install mariadb
+      yum:
+        name:
+          - MariaDB-server
+          - MariaDB-client
+        state: present
+
+    - name: Install the python mysql support libraries
+      yum: pkg=MySQL-python state=latest
+
+    - name: Start mysql and enable it on reboot
+      service: name=mariadb state=started enabled=true
+
+    - name: Add docker-ce repository
+      yum_repository:
+        name: Docker-CE
+        description: Stable Docker CE repository
+        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        gpgcheck: true
+
+    - name: Install docker-ce
+      yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: Start docker and enable it on reboot
+      service: name=docker state=started enabled=true
+
+    - name: Update mysql root password for all root accounts
+      mysql_user:
+        name: root
+        password: "{{ mysql_root_password }}"
+        priv: '*.*:ALL,GRANT'
+        host_all: yes
+    
+    - name: Copy .my.cnf file with mysql root credentials
+      template:
+        src: my.cnf.j2
+        dest: /root/.my.cnf
+        owner: root
+        mode: 0600
+
+    - name: Delete all anonymous mysql user
+      mysql_user:
+        name: ''
+        host_all: yes
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+      
+    - name: Delete test database
+      mysql_db:
+        name: 'test'
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+  
+    - name: Create a new database
+      mysql_db:
+        name: "{{ mysql_database }}"
+        collation: "utf8_general_ci"
+        encoding: "utf8"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+      
+    - name: Create database user with all privileges
+      mysql_user:
+        name: "{{ mysql_user }}"
+        password: "{{ mysql_password }}"
+        priv: '{{ mysql_database }}.*:ALL'
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+      
+    - name: Create database user with select privileges
+      mysql_user:
+        name: "{{ mysql_select_user }}"
+        password: "{{ mysql_select_password }}"
+        priv: '{{ mysql_database }}.*:SELECT'
+        host: '%'
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Install python-pip
+      yum:
+        name: python-pip
+        state: present
+      
+    - name: Install docker python package
+      pip:
+        name: docker
+      
+    - name: Log into Gitlab Registry
+      docker_login:
+        registry: registry.gitlab.com
+        username: "{{ registry_username }}"
+        password: "{{ registry_password }}"
+  
+    - name: Starting vodomat_server_old container
+      docker_container:
+        name: "vodomat_server_old-{{ item }}"
+        state: started
+        image: 'registry.gitlab.com/{{ registry_username }}/vodomat_server_old:{{vodomat_server_version}}'
+        network_mode: host
+        restart_policy: always
+        env:
+          SECRET_KEY: "{{ secret_key }}"
+          MYSQL_DATABASE: "{{ mysql_database }}"
+          MYSQL_USER: "{{ mysql_user }}"
+          MYSQL_PASSWORD: "{{ mysql_password }}"
+          MYSQL_HOST: "{{ mysql_host }}"
+          MYSQL_PORT: "{{ mysql_port }}"
+          REDIS_HOST: "{{ redis_host }}"
+          REDIS_PORT: "{{ redis_port }}"
+          APP_PORT: "{{ item }}"
+      with_sequence: start=0 count={{ container_count }}
+
+    - name: Script for delete old data from mysql database
+      template:
+        src: delete_old_data.py.j2
+        dest: /root/delete_old_data.py
+        owner: root
+        mode: 0755
+
+    - name: Add delete old data script to cron
+      cron:
+        name: "Delete old data from mysql database"
+        minute: "0"
+        hour: "3"
+        job: "/root/delete_old_data.py"
+  

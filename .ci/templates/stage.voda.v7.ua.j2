@@ -1,0 +1,21 @@
+upstream vodomat_server_old {
+    {% for i in range(container_count|int) %}
+        server 127.0.0.1:808{{i}} fail_timeout=0;
+    {% endfor %}
+}
+
+server {
+    listen 80;
+    server_name stage.voda.v7.ua;
+
+    access_log /var/log/nginx/access-stage.voda.v7.ua.log;
+    error_log /var/log/nginx/error-stage.voda.v7.ua.log;
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect off;
+        proxy_buffering off;
+        proxy_pass http://vodomat_server_old;
+    }
+}

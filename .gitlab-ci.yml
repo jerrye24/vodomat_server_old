@@ -1,52 +1,36 @@
 stages:
-  - create_stage_environment
-  - setup_stage_environment
   - test
-  - delete_stage_environment
+  - build
+  - deploy
 
-create_stage:
-  stage: create_stage_environment
-  image:
-    name: hashicorp/terraform:light
-    entrypoint:
-      - /usr/bin/env
-  script:
-    - echo $SERVICEACCOUNT | base64 -d > vodomat_key.json
-    - echo $SSH_PUBLIC_KEY > vodomat.pub
-    - terraform init
-    - terraform apply -auto-approve
-    - terraform output server_external_ip > server_external_ip
-  artifacts:
-    paths:
-      - .terraform
-      - terraform.tfstate
-      - server_external_ip
-    expire_in: 1 week
-
-setup_stage:
-  stage: setup_stage_environment
-  image:
-    name: ansible/centos7-ansible:latest
-  script: 
-    - SERVER_EXTERNAL_IP=$(cat server_external_ip)
-    - ansible -i $SERVER_EXTERNAL_IP -a ping
-  dependencies:
-    - create_stage
-
-test_application:
+test:
   stage: test
-  script: echo "Test app"
+  script: echo "Test"
 
-test_api:
-  stage: test
-  script: echo "Test api"
-
-delete_stage:
-  stage: delete_stage_environment
+build:
+  image: docker:latest
+  stage: build
   script:
-    - echo $SERVICEACCOUNT | base64 -d > vodomat_key.json
-    - echo $SSH_PUBLIC_KEY > vodomat.pub
-    - terraform destroy -auto-approve
-  dependencies:
-    - create_stage
-  when: manual
+    - docker login -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD} registry.gitlab.com
+    - docker build -t registry.gitlab.com/${REGISTRY_USERNAME}/vodomat_server_old:${CI_PIPELINE_ID} .
+    - docker push registry.gitlab.com/${REGISTRY_USERNAME}/vodomat_server_old:${CI_PIPELINE_ID}
+
+deploy:
+  image: williamyeh/ansible:ubuntu16.04
+  stage: deploy
+  script:
+    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )"
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - "[[ -f /.dockerenv ]] && echo -e 'Host *\n\tStrictHostKeyChecking no\n\n' > ~/.ssh/config"
+    - cd .ci
+    - "ansible-playbook -i inventory -e vodomat_server_version=${CI_PIPELINE_ID}
+        -e firewall_address_accept=${FIREWALL_ADDRESS_ACCEPT}
+        -e registry_username=${REGISTRY_USERNAME} -e registry_password=${REGISTRY_PASSWORD}
+        -e mysql_root_password=${MYSQL_ROOT_PASSWORD} -e mysql_database=${MYSQL_DATABASE}
+        -e mysql_user=${MYSQL_USER} -e mysql_password=${MYSQL_PASSWORD}
+        -e mysql_select_user=${MYSQL_SELECT_USER} -e mysql_select_password=${MYSQL_SELECT_PASSWORD}
+        -e mysql_host=${MYSQL_HOST} -e mysql_port=${MYSQL_PORT}
+        -e redis_host=${REDIS_HOST} -e redis_port=${REDIS_PORT}
+        -e secret_key=${SECRET_KEY} -e container_count=4 deploy.yml"
