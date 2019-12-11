@@ -21,8 +21,8 @@ async def init_db(app):
         password=conf['password'],
         host=conf['host'],
         port=conf['port'],
-        minsize=conf['minsize'],
-        maxsize=conf['maxsize'],
+        minsize=1,
+        maxsize=5,
         autocommit=True,
         charset='utf8',
     )
