@@ -1,0 +1,169 @@
+{% extends 'base.j2' %}
+
+{% block title %}List of Users{% endblock %}
+
+{% block content %}
+
+    <form action="{{ url('create_user') }}" method="POST">
+        <div class="row m-3">
+            <div class="col">
+                <input type="text" class="form-control" placeholder="Username" name="username">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" placeholder="First name" name="first_name">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" placeholder="Last name" name="last_name">
+            </div>
+            <div class="col">
+                <select name="permission" id="" class="form-control">
+                    <option value="0" selected>Operator</option>
+                    <option value="1">Administrator</option>
+                </select>
+            </div>
+            <div class="col">
+                <input type="password" class="form-control" placeholder="Password" name="password">
+            </div>
+            <div class="col">
+                <input type="password" class="form-control" placeholder="Confirm Password" name="confirm_password">
+            </div>
+            <button type="submit" class="btn btn-outline-secondary">Create new User</button>
+        </div>
+    </form>
+
+    <table class="table table-striped table-bordered table-hover ">
+        <thead class="thead-light">
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">Username</th>
+                <th scope="col">First name</th>
+                <th scope="col">Last name</th>
+                <th scope="col">Permission</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.first_name }}</td>
+                    <td>{{ user.last_name }}</td>
+                    <td>{% if user.role==1 %}administrator{% else %}operator{% endif %}</td>
+                    <td><a class="text-info" data-toggle="modal" data-target="#updateUser" data-user_id="{{user.user_id}}"
+                                                                                           data-username="{{user.username}}"
+                                                                                           data-first_name="{{user.first_name}}"
+                                                                                           data-last_name="{{user.last_name}}"
+                                                                                           data-permission="{{user.role}}">
+                            Edit
+                        </a>
+                    </td>
+                    <td><a class="text-danger" data-toggle="modal" data-target="#deleteUser" data-user_id="{{user.user_id}}"
+                                                                                             data-username="{{user.username}}">
+                            Del
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="modal fade" id="updateUser" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update User</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url('update_user') }}" method="POST">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" id="username" name='username'>
+                        </div>
+                        <div class="form-group">
+                            <label for="first_name">First name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Last name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="permission">Permission</label>
+                            <select name="permission" id="permission" class="form-control">
+                                <option value="0">operator</option>
+                                <option value="1">administrator</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="old_password">Old Password</label>
+                            <input type="password" class="form-control" id="old_password", name="old_password">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                        </div>
+                        <input type="hidden" id="user_id" name="user_id">
+
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteUser" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete User</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h6 id="username_to_delete" class="mb-4"></h6>
+                    <form action="{{ url('delete_user') }}" method="POST">
+                        <input type="hidden" id="user_id" name="user_id">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#updateUser').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget)
+            var username = button.data('username')
+            var first_name = button.data('first_name')
+            var last_name = button.data('last_name')
+            var permission = button.data('permission')
+            var user_id = button.data('user_id')
+            var modal = $(this)
+
+            modal.find('#username').val(username)
+            modal.find('#first_name').val(first_name)
+            modal.find('#last_name').val(last_name)
+            modal.find('#permission').val(permission)
+            modal.find('#user_id').val(user_id)
+        })
+
+        $('#deleteUser').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget)
+            var username = button.data('username')
+            var user_id = button.data('user_id')
+            var modal = $(this)
+
+            modal.find('#username_to_delete').text('Do you want to delete user: ' + username + '?')
+            modal.find('#user_id').val(user_id)
+        })
+    </script>
+
+{% endblock %}

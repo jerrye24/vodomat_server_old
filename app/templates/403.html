@@ -1,0 +1,14 @@
+{% extends 'base.j2' %}
+
+{% block title %}403{% endblock %}
+    
+{% block content %}
+
+    <div class="jumbotron">
+        <h1 class="display-4">Oooops! 403</h1>
+        <p class="lead">{% if error %}{{ error }}{% else %}You are not allowed to enter here.{% endif %}</p>
+        <hr class="my-4">
+        <a href="{{ url('status_of_avtomats') }}" class="btn btn-primary btn-lg">Go home</a>
+    </div>
+
+{% endblock %}

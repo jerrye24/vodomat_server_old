@@ -20,6 +20,8 @@ avtomat = Table(
     Column('number', Integer, primary_key=True),
     Column('address', String(50)),
     Column('inv_num', Integer),
+    Column('price', Integer),
+    Column('size', Integer),
     Column('ph_number', String(13)),
     Column('driver', String(50)),
     Column('route', String(50)),
@@ -73,6 +75,17 @@ avtomat_coll_table = Table(
     Column('how_money', Float),
     Column('event', String(20)),
     Column('timestamp', Integer)
+)
+
+users = Table(
+    'users', metadata,
+
+    Column('user_id', Integer, primary_key=True),
+    Column('first_name', String(100)),
+    Column('last_name', String(100)),
+    Column('username', String(45)),
+    Column('password', String(128)),
+    Column('role', Integer)
 )
 
 
@@ -135,6 +148,59 @@ async def write_line_to_inbox_http(conn, line):
 
 
 async def get_statuses(conn):
-    result = await conn.execute(status.select())
+    j = status.join(avtomat, status.c.number == avtomat.c.number)
+    result = await conn.execute(select([status, avtomat.c.address])
+                                .select_from(j).order_by(-status.c.timestamp))
     statuses = await result.fetchall()
     return statuses
+
+
+async def get_avtomats(conn):
+    result = await conn.execute(avtomat.select().order_by(avtomat.c.number))
+    avtomats = await result.fetchall()
+    return avtomats
+
+
+async def update_avtomat(conn, number, address, size, ph_number, driver, route, competitors, price):
+    query = avtomat.update().where(avtomat.c.number == number)\
+                   .values(address=address, size=size, ph_number=ph_number, driver=driver, route=route,
+                           competitors=competitors, price=price)
+    await conn.execute(query)
+
+
+async def get_users(conn):
+    result = await conn.execute(users.select().order_by(users.c.username))
+    list_of_users = await result.fetchall()
+    return list_of_users
+
+
+async def get_user_by_id(conn, user_id):
+    result = await conn.execute(users.select().where(users.c.user_id==user_id))
+    user_by_id = await result.first()
+    return user_by_id
+
+
+async def get_user_by_name(conn, username):
+    result = await conn.execute(users.select().where(users.c.username==username))
+    user_by_name = await result.first()
+    return user_by_name
+
+
+async def create_user(conn, username, first_name, last_name, password, role):
+    query = users.insert().values(username=username, first_name=first_name, last_name=last_name, password=password, role=role)
+    await conn.execute(query)
+
+
+async def update_user(conn, user_id, username, first_name, last_name, role, password):
+    if password:
+        query = users.update().where(users.c.user_id==user_id)\
+            .values(username=username, first_name=first_name, last_name=last_name, role=role, password=password)
+    else:
+        query = users.update().where(users.c.user_id == user_id)\
+            .values(username=username, first_name=first_name, last_name=last_name, role=role)
+    await conn.execute(query)
+
+
+async def delete_user(conn, user_id):
+    query = users.delete().where(users.c.user_id == user_id)
+    await conn.execute(query)

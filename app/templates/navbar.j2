@@ -1,0 +1,45 @@
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #417690;">
+    <a href="" class="navbar-brand" style="color: #f5dd5d;">Vodomat Old</a>
+
+
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a href="{{ url('status_of_avtomats') }}" class="nav-link">Status</a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url('list_of_avtomats') }}" class="nav-link">Avtomats</a>
+            </li>
+            {% if current_user.is_admin %}
+            <li class="nav-item">
+                <a href="{{ url('list_of_users') }}" class="nav-link">Users</a>
+            </li>
+            {% endif %}
+        </ul>
+    
+    </div>
+
+    <span class="navbar-text mr-3">{{ current_user.username }}</span>
+    <a href="{{ url('logout') }}" class="btn btn-outline-warning ml-auto">Logout</a>
+
+</nav>
+
+<!-- Make "active" menu items -->
+<script>
+
+    jQuery(function($) {
+        var path = window.location.href;
+        $('ul a').each(function() {
+            if (this.href === path) {
+                $(this).addClass('active');
+            }
+        });
+    });
+
+</script>
