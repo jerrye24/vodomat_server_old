@@ -1,2 +1,2 @@
 [vodomat_server_old]
-voda.v7.ua ansible_ssh_user=root
+stage.v7.ua ansible_ssh_user=root
