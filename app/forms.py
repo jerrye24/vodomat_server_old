@@ -10,7 +10,7 @@ async def validate_update_avtomat_form(conn, form):
     driver = form.get('driver')
     route = form.get('route')
     competitors = form.get('competitors')
-    price = form.get('price')
+    price = form.get('water_price')
 
     if not price:
         price = 0

@@ -1,4 +1,5 @@
 from aiohttp import web
+import time
 import aiohttp_jinja2
 import models
 from forms import validate_update_avtomat_form, validate_create_user_form, validate_update_user_form, validate_login_form
@@ -37,6 +38,7 @@ def get_error(error):
 def parsing_line(line):
     data = dict()
     data['number'] = int(line[0:4])
+    data['timestamp'] = time.time()
     data['how_money'] = float(line[14:20]) / 100
     data['water_balance'] = float(line[20:26]) / 100
     data['water_price'] = float(line[26:30]) / 100
@@ -65,12 +67,19 @@ async def get_data(request):
     if len(line) == 48:
         async with request.app['db'].acquire() as conn:
             try:
+                # Parsing and write data from avtomat
                 data_from_avtomat = parsing_line(line)
-                await models.write_data_to_tables(conn, data_from_avtomat)
+                price = await models.write_data_to_tables(conn, data_from_avtomat)
+                # Write data in collection table
                 if data_from_avtomat['event'] == 'Инкассация':
                     await models.write_collection(conn, data_from_avtomat)
+                # Change water price in avtomat
+                if price:
+                    await models.discard_avtomat_price(conn, data_from_avtomat['number'])
+                    return web.Response(text=f'\nPrice={price:04d}\n')
                 return web.Response(text='ok')
             except:
+                # If line with some errors
                 await models.write_line_to_inbox_http(conn, line)
                 return web.Response(text='error')
     else:

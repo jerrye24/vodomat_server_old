@@ -22,7 +22,7 @@
             <tr>
                 <td>{{ avtomat.number }}</td>
                 <td>{{ avtomat.address }}</td>
-                <td>{% if avtomat.price %}{{ avtomat.price }}{% endif %}</td>
+                <td>{% if avtomat.price %}<span class="text-primary">{{ avtomat.price / 100 }}</span>{% endif %}</td>
                 <td>{% if avtomat.size==470 %}Single{% elif avtomat.size==940 %}Double{% endif %}</td>
                 <td>{{ avtomat.driver }}</td>
                 <td>{{ avtomat.route }}</td>

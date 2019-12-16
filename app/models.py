@@ -92,6 +92,7 @@ users = Table(
 async def write_data_to_tables(conn, data_from_avtomat):
     query_get_avtomat = await conn.execute(avtomat.select().where(avtomat.c.number == data_from_avtomat['number']))
     current_avtomat = await query_get_avtomat.first()
+    price = current_avtomat['price']
     if not current_avtomat:
         await conn.execute(avtomat.insert().
                            values(number=data_from_avtomat['number'], address=f"New {data_from_avtomat['number']}",
@@ -101,7 +102,7 @@ async def write_data_to_tables(conn, data_from_avtomat):
     current_status = await query_get_status.first()
     if not current_status:
         await conn.execute(status.insert().
-                           values(number=data_from_avtomat['number'], timestamp=int(time.time()),
+                           values(number=data_from_avtomat['number'], timestamp=data_from_avtomat['timestamp'],
                                   water_balance=data_from_avtomat['water_balance'],
                                   how_money=data_from_avtomat['how_money'],
                                   water_price=data_from_avtomat['water_price'],
@@ -114,7 +115,7 @@ async def write_data_to_tables(conn, data_from_avtomat):
                                   event=data_from_avtomat['event'], error=data_from_avtomat['error']))
     else:
         await conn.execute(status.update().where(status.c.number == data_from_avtomat['number']).
-                           values(timestamp=int(time.time()), water_balance=data_from_avtomat['water_balance'],
+                           values(timestamp=data_from_avtomat['timestamp'], water_balance=data_from_avtomat['water_balance'],
                                   how_money=data_from_avtomat['how_money'],
                                   water_price=data_from_avtomat['water_price'],
                                   ev_water=data_from_avtomat['ev_water'], ev_bill=data_from_avtomat['ev_bill'],
@@ -125,7 +126,7 @@ async def write_data_to_tables(conn, data_from_avtomat):
                                   kop=data_from_avtomat['kop'], event=data_from_avtomat['event'],
                                   error=data_from_avtomat['error']))
     await conn.execute(avtomat_log_table.insert().
-                       values(number=data_from_avtomat['number'], timestamp=int(time.time()),
+                       values(number=data_from_avtomat['number'], timestamp=data_from_avtomat['timestamp'],
                               water_balance=data_from_avtomat['water_balance'],
                               how_money=data_from_avtomat['how_money'], water_price=data_from_avtomat['water_price'],
                               ev_water=data_from_avtomat['ev_water'], ev_bill=data_from_avtomat['ev_bill'],
@@ -133,6 +134,8 @@ async def write_data_to_tables(conn, data_from_avtomat):
                               ev_counter_water=data_from_avtomat['ev_counter_water'],
                               ev_register=data_from_avtomat['ev_register'], grn=data_from_avtomat['grn'],
                               kop=data_from_avtomat['kop'], event=data_from_avtomat['event']))
+    if price:
+        return price
 
 
 async def write_collection(conn, data_from_avtomat):
@@ -144,6 +147,11 @@ async def write_collection(conn, data_from_avtomat):
 
 async def write_line_to_inbox_http(conn, line):
     query = inbox_http.insert().values(timestamp=int(time.time()), text=line, processed=0)
+    await conn.execute(query)
+
+
+async def discard_avtomat_price(conn, number):
+    query = avtomat.update().where(avtomat.c.number == number).values(price=0)
     await conn.execute(query)
 
 
