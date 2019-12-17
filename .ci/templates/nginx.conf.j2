@@ -6,10 +6,10 @@ upstream vodomat_server_old {
 
 server {
     listen 80;
-    server_name voda.v7.ua;
+    server_name {{ ansible_hostname }};
 
-    access_log /var/log/nginx/access-voda.v7.ua.log;
-    error_log /var/log/nginx/error-voda.v7.ua.log;
+    access_log /var/log/nginx/access-{{ ansible_hostname }}.log;
+    error_log /var/log/nginx/error-{{ ansible_hostname }}.log;
 
     location / {
         proxy_set_header Host $http_host;
