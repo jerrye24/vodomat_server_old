@@ -92,50 +92,26 @@ users = Table(
 async def write_data_to_tables(conn, data_from_avtomat):
     query_get_avtomat = await conn.execute(avtomat.select().where(avtomat.c.number == data_from_avtomat['number']))
     current_avtomat = await query_get_avtomat.first()
-    price = current_avtomat['price']
+    # ------------------------------------------------------------
     if not current_avtomat:
+        price = None
         await conn.execute(avtomat.insert().
                            values(number=data_from_avtomat['number'], address=f"New {data_from_avtomat['number']}",
                                   inv_num=data_from_avtomat['number'], ph_number='',
                                   driver='', route='', competitors='нет'))
+    else:
+        price = current_avtomat.get('price')
+    # ------------------------------------------------------------
     query_get_status = await conn.execute(status.select().where(status.c.number == data_from_avtomat['number']))
     current_status = await query_get_status.first()
     if not current_status:
-        await conn.execute(status.insert().
-                           values(number=data_from_avtomat['number'], timestamp=data_from_avtomat['timestamp'],
-                                  water_balance=data_from_avtomat['water_balance'],
-                                  how_money=data_from_avtomat['how_money'],
-                                  water_price=data_from_avtomat['water_price'],
-                                  ev_water=data_from_avtomat['ev_water'], ev_bill=data_from_avtomat['ev_bill'],
-                                  ev_volt=data_from_avtomat['ev_volt'],
-                                  ev_counter_water=data_from_avtomat['ev_counter_water'],
-                                  ev_register=data_from_avtomat['ev_register'],
-                                  time_to_block=data_from_avtomat['time_to_block'],
-                                  grn=data_from_avtomat['grn'], kop=data_from_avtomat['kop'],
-                                  event=data_from_avtomat['event'], error=data_from_avtomat['error']))
+        await conn.execute(status.insert().values(data_from_avtomat))
     else:
-        await conn.execute(status.update().where(status.c.number == data_from_avtomat['number']).
-                           values(timestamp=data_from_avtomat['timestamp'], water_balance=data_from_avtomat['water_balance'],
-                                  how_money=data_from_avtomat['how_money'],
-                                  water_price=data_from_avtomat['water_price'],
-                                  ev_water=data_from_avtomat['ev_water'], ev_bill=data_from_avtomat['ev_bill'],
-                                  ev_volt=data_from_avtomat['ev_volt'],
-                                  ev_counter_water=data_from_avtomat['ev_counter_water'],
-                                  ev_register=data_from_avtomat['ev_register'],
-                                  time_to_block=data_from_avtomat['time_to_block'], grn=data_from_avtomat['grn'],
-                                  kop=data_from_avtomat['kop'], event=data_from_avtomat['event'],
-                                  error=data_from_avtomat['error']))
+        await conn.execute(status.update().where(status.c.number == data_from_avtomat['number']).values(data_from_avtomat))
+    # --------------------------------------------------------------
     await conn.execute(avtomat_log_table.insert().
-                       values(number=data_from_avtomat['number'], timestamp=data_from_avtomat['timestamp'],
-                              water_balance=data_from_avtomat['water_balance'],
-                              how_money=data_from_avtomat['how_money'], water_price=data_from_avtomat['water_price'],
-                              ev_water=data_from_avtomat['ev_water'], ev_bill=data_from_avtomat['ev_bill'],
-                              ev_volt=data_from_avtomat['ev_volt'],
-                              ev_counter_water=data_from_avtomat['ev_counter_water'],
-                              ev_register=data_from_avtomat['ev_register'], grn=data_from_avtomat['grn'],
-                              kop=data_from_avtomat['kop'], event=data_from_avtomat['event']))
-    if price:
-        return price
+                       values({key: value for key,value in data_from_avtomat.items() if key not in ['error', 'time_to_block']}))
+    return price
 
 
 async def write_collection(conn, data_from_avtomat):
