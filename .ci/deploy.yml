@@ -1,5 +1,5 @@
 ---
-- hosts: "{{ hostname }}"
+- hosts: vodomat_server_old
   become: true
   handlers:
     - name: restart nginx

@@ -92,7 +92,6 @@ users = Table(
 async def write_data_to_tables(conn, data_from_avtomat):
     query_get_avtomat = await conn.execute(avtomat.select().where(avtomat.c.number == data_from_avtomat['number']))
     current_avtomat = await query_get_avtomat.first()
-    # ------------------------------------------------------------
     if not current_avtomat:
         price = None
         await conn.execute(avtomat.insert().

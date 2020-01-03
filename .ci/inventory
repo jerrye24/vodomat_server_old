@@ -1,5 +1,2 @@
-[stage]
-stage.v7.ua ansible_ssh_user=root
-
-[production]
+[vodomat_server_old]
 voda.v7.ua ansible_ssh_user=root
