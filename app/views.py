@@ -6,6 +6,7 @@ from forms import validate_update_avtomat_form, validate_create_user_form, valid
 from aiohttp_security import authorized_userid, remember, check_permission
 from aiohttp_session import get_session
 from security import redirect_to_login
+from aiojobs.aiohttp import atomic
 
 
 def get_event(number_of_event):
@@ -62,6 +63,7 @@ async def index(request):
     return response
 
 
+@atomic
 async def get_data(request):
     line = request.rel_url.query.get('data', default='')
     if len(line) == 48:

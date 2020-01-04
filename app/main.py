@@ -17,6 +17,7 @@ import jinja2
 import os
 from template_filters import datetime_from_timestamp_filter
 from middlewares import setup_middlewares
+import aiojobs
 
 parser = argparse.ArgumentParser(description='vodomat server old')
 parser.add_argument('--port')
@@ -96,6 +97,8 @@ async def make_app():
                          context_processors=[current_user_context_processor],
                          )
     setup_middlewares(app)
+
+    aiojobs.aiohttp.setup(app)
 
     return app
 
