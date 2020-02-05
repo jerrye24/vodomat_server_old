@@ -138,6 +138,12 @@ async def get_statuses(conn):
     return statuses
 
 
+async def get_status_by_number(conn, number):
+    result = await conn.execute(status.select().where(status.c.number == number))
+    status_by_number = await result.first()
+    return status_by_number
+
+
 async def get_avtomats(conn):
     result = await conn.execute(avtomat.select().order_by(avtomat.c.number))
     avtomats = await result.fetchall()
