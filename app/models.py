@@ -138,10 +138,19 @@ async def get_statuses(conn):
     return statuses
 
 
+# API ---------------------------------------------------------------------------------
 async def get_status_by_number(conn, number):
     result = await conn.execute(status.select().where(status.c.number == number))
     status_by_number = await result.first()
     return status_by_number
+
+
+async def get_status_by_address(conn, address):
+    j = status.join(avtomat, status.c.number == avtomat.c.number)
+    result = await conn.execute(select([status]).select_from(j).where(avtomat.c.address.like(address)))
+    status_by_address = await result.first()
+    return status_by_address
+# ----------------------------------------------------------------------------------------
 
 
 async def get_avtomats(conn):
