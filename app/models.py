@@ -1,5 +1,6 @@
 from sqlalchemy import MetaData, Table, Column, func
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Float, Boolean
+from sqlalchemy import func
 from sqlalchemy.sql import select
 import time
 
@@ -85,10 +86,12 @@ users = Table(
     Column('last_name', String(100)),
     Column('username', String(45)),
     Column('password', String(128)),
-    Column('role', Integer)
+    Column('role', Integer),
+    Column('city', String(64))
 )
 
 
+# Main Function ---------------------------------------------------------------------------------------------
 async def write_data_to_tables(conn, data_from_avtomat):
     query_get_avtomat = await conn.execute(avtomat.select().where(avtomat.c.number == data_from_avtomat['number']))
     current_avtomat = await query_get_avtomat.first()
@@ -128,6 +131,7 @@ async def write_line_to_inbox_http(conn, line):
 async def discard_avtomat_price(conn, number):
     query = avtomat.update().where(avtomat.c.number == number).values(price=0)
     await conn.execute(query)
+# End Main Function -----------------------------------------------------------------------------------------------
 
 
 async def get_statuses(conn):
@@ -136,21 +140,6 @@ async def get_statuses(conn):
                                 .select_from(j).order_by(-status.c.timestamp))
     statuses = await result.fetchall()
     return statuses
-
-
-# API ---------------------------------------------------------------------------------
-async def get_status_by_number(conn, number):
-    result = await conn.execute(status.select().where(status.c.number == number))
-    status_by_number = await result.first()
-    return status_by_number
-
-
-async def get_status_by_address(conn, address):
-    j = status.join(avtomat, status.c.number == avtomat.c.number)
-    result = await conn.execute(select([status]).select_from(j).where(avtomat.c.address.like(address)))
-    status_by_address = await result.first()
-    return status_by_address
-# ----------------------------------------------------------------------------------------
 
 
 async def get_avtomats(conn):
@@ -185,20 +174,66 @@ async def get_user_by_name(conn, username):
 
 
 async def create_user(conn, username, first_name, last_name, password, role):
-    query = users.insert().values(username=username, first_name=first_name, last_name=last_name, password=password, role=role)
+    query = users.insert().values(username=username,
+                                  first_name=first_name,
+                                  last_name=last_name,
+                                  password=password,
+                                  role=role,
+                                  city='')
     await conn.execute(query)
 
 
-async def update_user(conn, user_id, username, first_name, last_name, role, password):
+async def update_user(conn, user_id, username, first_name, last_name, role, city, password):
     if password:
         query = users.update().where(users.c.user_id==user_id)\
-            .values(username=username, first_name=first_name, last_name=last_name, role=role, password=password)
+            .values(username=username,
+                    first_name=first_name,
+                    last_name=last_name,
+                    role=role,
+                    city=city,
+                    password=password)
     else:
         query = users.update().where(users.c.user_id == user_id)\
-            .values(username=username, first_name=first_name, last_name=last_name, role=role)
+            .values(username=username,
+                    first_name=first_name, 
+                    last_name=last_name, 
+                    role=role,
+                    city=city)
     await conn.execute(query)
 
 
 async def delete_user(conn, user_id):
     query = users.delete().where(users.c.user_id == user_id)
     await conn.execute(query)
+
+
+# API ---------------------------------------------------------------------------------
+async def get_status_by_number(conn, number):
+    result = await conn.execute(status.select().where(status.c.number == number))
+    status_by_number = await result.first()
+    return status_by_number
+
+
+async def get_status_by_address(conn, address):
+    j = status.join(avtomat, status.c.number == avtomat.c.number)
+    result = await conn.execute(select([status]).select_from(j).where(avtomat.c.address.like(address)))
+    status_by_address = await result.first()
+    return status_by_address
+
+
+async def get_statuses_by_city(conn, city):
+    j = status.join(avtomat, status.c.number == avtomat.c.number)
+    result = await conn.execute(select([avtomat.c.address, status])\
+        .select_from(j)\
+        .where(avtomat.c.address.like(f'{city}%')))
+    statuses_by_city = await result.fetchall()
+    return statuses_by_city
+
+
+async def get_statistic(conn, number, date):
+    result = await conn.execute(avtomat_log_table.select()\
+        .where(avtomat_log_table.c.number == number)\
+        .where(func.from_unixtime(avtomat_log_table.c.timestamp, '%Y-%m-%d') == date))
+    statistic = await result.fetchall()
+    return statistic
+# ----------------------------------------------------------------------------------------

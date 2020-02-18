@@ -39,6 +39,7 @@
                 <th scope="col">First name</th>
                 <th scope="col">Last name</th>
                 <th scope="col">Permission</th>
+                <th scope="col">City</th>
                 <th scope="col"></th>
                 <th scope="col"></th>
             </tr>
@@ -51,11 +52,13 @@
                     <td>{{ user.first_name }}</td>
                     <td>{{ user.last_name }}</td>
                     <td>{% if user.role==1 %}administrator{% else %}operator{% endif %}</td>
+                    <td>{% if user.city %}{{user.city}}{% endif %}</td>
                     <td><a class="text-info" data-toggle="modal" data-target="#updateUser" data-user_id="{{user.user_id}}"
                                                                                            data-username="{{user.username}}"
                                                                                            data-first_name="{{user.first_name}}"
                                                                                            data-last_name="{{user.last_name}}"
-                                                                                           data-permission="{{user.role}}">
+                                                                                           data-permission="{{user.role}}"
+                                                                                           data-city="{{user.city}}">
                             Edit
                         </a>
                     </td>
@@ -98,6 +101,10 @@
                                 <option value="0">operator</option>
                                 <option value="1">administrator</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <input type="text" class="form-control" id="city" name="city">
                         </div>
                         <div class="form-group">
                             <label for="old_password">Old Password</label>
@@ -145,6 +152,7 @@
             var first_name = button.data('first_name')
             var last_name = button.data('last_name')
             var permission = button.data('permission')
+            var city = button.data('city')
             var user_id = button.data('user_id')
             var modal = $(this)
 
@@ -152,6 +160,7 @@
             modal.find('#first_name').val(first_name)
             modal.find('#last_name').val(last_name)
             modal.find('#permission').val(permission)
+            modal.find('#city').val(city)
             modal.find('#user_id').val(user_id)
         })
 

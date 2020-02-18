@@ -12,6 +12,7 @@ class Config:
         self.redis = {
             'host': os.environ.get('REDIS_HOST'), 'port': os.environ.get('REDIS_PORT')
         }
+        self.SECRET_KEY = os.environ.get('SECRET_KEY')
 
 config = Config()
 BASE_DIR = pathlib.Path(__file__).parent

@@ -4,7 +4,7 @@ from aiomysql.sa import create_engine
 from views import index, get_data, status_of_avtomats, list_of_avtomats, update_avtomat
 from views import list_of_users, delete_user, create_user, update_user
 from views import login, logout
-from api import get_status
+from api import get_status, get_statuses_by_city, get_statistic, get_api_key
 from settings import config
 import argparse
 import aiohttp_jinja2
@@ -36,7 +36,10 @@ routes = [web.route('GET', '/', index, name='index'),
           web.route('GET', '/login', login, name='login'),
           web.route('POST', '/login', login, name='login'),
           web.route('GET', '/logout', logout, name='logout'),
-          web.route('GET', '/api/status/{avtomat}', get_status)
+          web.route('GET', '/api/status/{avtomat}', get_status),
+          web.route('GET', '/api/status/city/{city}', get_statuses_by_city),
+          web.route('GET', '/api/statistic', get_statistic),
+          web.route('GET', '/api/api_key', get_api_key),
         ]
 
 async def init_db(app):

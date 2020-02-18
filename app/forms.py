@@ -52,12 +52,16 @@ async def validate_update_user_form(conn, form):
     old_password = form.get('old_password')
     new_password = form.get('new_password')
     permission = form.get('permission')
+    city = form.get('city')
     user_id = form.get('user_id')
 
     if not username:
         return 'username is required'
     if not permission:
         return 'permission is required'
+    
+    if not city or city == 'None':
+        city = ''
     
     user = await models.get_user_by_id(conn, user_id)
 
@@ -69,17 +73,15 @@ async def validate_update_user_form(conn, form):
     else:
         password = None
     
-    await models.update_user(conn, user_id, username, first_name, last_name, permission, password)
+    await models.update_user(conn, user_id, username, first_name, last_name, permission, city, password)
 
 
 async def validate_login_form(conn, form):
     username = form.get('username')
     password = form.get('password')
 
-    if not username:
-        return 'username is required'
-    if not password:
-        return 'password is required'
+    if not username or not password:
+        return 'username or password is required'
     
     user = await models.get_user_by_name(conn, username)
 
