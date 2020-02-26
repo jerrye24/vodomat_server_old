@@ -36,7 +36,7 @@ def get_error(error):
     return errors.get(error, 'error')
 
 
-def parsing_line(line):
+async def parsing_line_48(line):
     data = dict()
     data['number'] = int(line[0:4])
     data['timestamp'] = time.time()
@@ -56,6 +56,26 @@ def parsing_line(line):
     return data
 
 
+async def parsing_line_60(line):
+    data = dict()
+    data['number'] = int(line[0:4])
+    data['timestamp'] = time.time()
+    data['how_money'] = float(line[14:20]) / 100
+    data['water_balance'] = float(line[20:26]) / 100
+    data['water_price'] = float(line[26:30]) / 100
+    data['time_to_block'] = int(line[30:32])
+    data['grn'] = int(line[32:36])
+    data['kop'] = int(line[36:40])
+    data['ev_water'] = get_error(int(line[52]))
+    data['ev_volt'] = get_error(int(line[53]))
+    data['ev_bill'] = get_error(int(line[54]))
+    data['ev_counter_water'] = get_error(int(line[55]))
+    data['ev_register'] = get_error(int(line[56]))
+    data['event'] = get_event(int(line[58:]))
+    data['error'] = 0 if any([int(line[52]), int(line[53]), int(line[54]), int(line[55]), int(line[56])]) else 1
+    return data
+
+
 @redirect_to_login
 async def index(request):
     location = request.app.router['status_of_avtomats'].url_for()
@@ -66,11 +86,14 @@ async def index(request):
 @atomic
 async def get_data(request):
     line = request.rel_url.query.get('data', default='')
-    if len(line) == 48:
+    if len(line) == 48 or len(line) == 60:
         async with request.app['db'].acquire() as conn:
             try:
-                # Parsing and write data from avtomat
-                data_from_avtomat = parsing_line(line)
+                if len(line) == 48:
+                    data_from_avtomat = await parsing_line_48(line)
+                if len(line) == 60:
+                    data_from_avtomat = await parsing_line_60(line)
+                # Write data in status and statistic tables
                 price = await models.write_data_to_tables(conn, data_from_avtomat)
                 # Write data in collection table
                 if data_from_avtomat['event'] == 'Инкассация':
@@ -84,8 +107,7 @@ async def get_data(request):
                 # If line with some errors
                 await models.write_line_to_inbox_http(conn, line)
                 return web.Response(text='error')
-    else:
-        return web.Response(text='500')
+    return web.Response(text='500')
 
 
 @aiohttp_jinja2.template('status_of_avtomats.j2')
