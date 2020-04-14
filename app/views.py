@@ -66,6 +66,8 @@ async def parsing_line_60(line):
     data['time_to_block'] = int(line[30:32])
     data['grn'] = int(line[32:36])
     data['kop'] = int(line[36:40])
+    data['bill_not_work'] = int(line[46:48])
+    data['coin_not_work'] = int(line[48:50])
     data['ev_water'] = get_error(int(line[52]))
     data['ev_volt'] = get_error(int(line[53]))
     data['ev_bill'] = get_error(int(line[54]))

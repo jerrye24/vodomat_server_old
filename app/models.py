@@ -43,6 +43,8 @@ status = Table(
     Column('ev_counter_water', String(20)),
     Column('ev_register', String(20)),
     Column('time_to_block', Integer),
+    Column('bill_not_work', Integer),
+    Column('coin_not_work', Integer),
     Column('grn', Integer),
     Column('kop', Integer),
     Column('event', String(20)),
@@ -112,7 +114,10 @@ async def write_data_to_tables(conn, data_from_avtomat):
         await conn.execute(status.update().where(status.c.number == data_from_avtomat['number']).values(data_from_avtomat))
     # --------------------------------------------------------------
     await conn.execute(avtomat_log_table.insert().
-                       values({key: value for key,value in data_from_avtomat.items() if key not in ['error', 'time_to_block']}))
+                       values({key: value for key,value in data_from_avtomat.items() if key not in ['error',
+                                                                                                    'time_to_block',
+                                                                                                    'bill_not_work',
+                                                                                                    'coin_not_work']}))
     return price
 
 
