@@ -5,7 +5,7 @@
 {% block content %}
     <table class="table table-striped table-hover table-bordered">
         <colgroup>
-            <col span="8">
+            <col span="9">
             <col span="5" style="background-color: #F0F8FF;"></col>
         </colgroup>
         <thead>
@@ -15,6 +15,7 @@
                 <th scope="col">Time</th>
                 <th scope="col">Water counter</th>
                 <th scope="col">Money</th>
+                <th scope="col">Money App</th>
                 <th scope="col">grn</th>
                 <th scope="col">kop</th>
                 <th scope="col">Price</th>
@@ -33,6 +34,7 @@
                 <td>{{status.timestamp | datetime_from_timestamp}}</td>
                 <td>{{status.water_balance}}</td>
                 <td>{{status.how_money}}</td>
+                <td>{% if status.money_app %}{{status.money_app}}{% endif %}</td>
                 <td>{{status.grn}}</td>
                 <td>{{status.kop}}</td>
                 <td>{{status.water_price}}</td>
