@@ -7,9 +7,10 @@ from aiohttp_security import authorized_userid, remember, check_permission
 from aiohttp_session import get_session
 from security import redirect_to_login
 from aiojobs.aiohttp import atomic
+from typing import Dict
 
 
-def get_event(number_of_event):
+def get_event(number_of_event: int) -> str:
     events = {
         1: 'Нет воды',
         2: 'Нет электричества',
@@ -19,16 +20,21 @@ def get_event(number_of_event):
         6: 'Ответ на запрос',
         7: 'Купюроприемник',
         8: 'Регистратор',
-        9: 'Включение или перезапуск',
+        9: 'Вкл. или перезапуск',
         10: 'Вкл. сервисный',
         11: 'Выкл. сервисный',
         12: 'Вскрытие',
         13: '12 часов',
+        14: 'Регистратор вкл.',
+        15: 'Продажа зак(безнал)',
+        17: 'Не исп оплата(нал)',
+        18: 'Не исп оплата(без)',
     }
     return events.get(number_of_event, number_of_event)
 
 
-def get_error(error):
+def get_error(error: int) -> str:
+    '''Only for 48-line'''
     errors = {
         0: 'НОРМА',
         1: 'СБОЙ'
@@ -36,7 +42,21 @@ def get_error(error):
     return errors.get(error, 'error')
 
 
-async def parsing_line_48(line):
+def water_machine_nodes_health_status(data_dict: Dict, f: int, l: int) -> Dict:
+    '''
+    Only for 60-line
+    f and l - flags from incoming string
+    '''
+    allowed_values = (0, 1, 2, 3, 4, 5, 6, 7)
+    data_dict['ev_water'] = 'СБОЙ' if f in (1,3,7) else 'НОРМА' if f in allowed_values else 'error'
+    data_dict['ev_volt'] = 'СБОЙ' if f in (2,3,6,7) else 'НОРМА' if f in allowed_values else 'error'
+    data_dict['ev_bill'] = 'СБОЙ' if f in (4,5,6,7) else 'НОРМА' if f in allowed_values else 'error'
+    data_dict['ev_counter_water'] = 'СБОЙ' if l in (1,3,7) else 'НОРМА' if f in allowed_values else 'error'
+    data_dict['ev_register'] = 'СБОЙ' if l in (2,3,6,7) else 'НОРМА' if f in allowed_values else 'error'
+    return data_dict
+
+
+async def parsing_line_48(line: str) -> Dict:
     data = dict()
     data['number'] = int(line[0:4])
     data['timestamp'] = time.time()
@@ -56,8 +76,10 @@ async def parsing_line_48(line):
     return data
 
 
-async def parsing_line_60(line):
+async def parsing_line_60(line: str) -> Dict:
     data = dict()
+    f, l = int(line[52]), int(line[53])
+    water_machine_nodes_health_status(data, f, l)
     data['number'] = int(line[0:4])
     data['timestamp'] = time.time()
     data['how_money'] = float(line[14:20]) / 100
@@ -69,13 +91,8 @@ async def parsing_line_60(line):
     data['money_app'] = int(line[40:46])
     data['bill_not_work'] = int(line[46:48])
     data['coin_not_work'] = int(line[48:50])
-    data['ev_water'] = get_error(int(line[52]))
-    data['ev_volt'] = get_error(int(line[53]))
-    data['ev_bill'] = get_error(int(line[54]))
-    data['ev_counter_water'] = get_error(int(line[55]))
-    data['ev_register'] = get_error(int(line[56]))
     data['event'] = get_event(int(line[58:]))
-    data['error'] = 0 if any([int(line[52]), int(line[53]), int(line[54]), int(line[55]), int(line[56])]) else 1
+    data['error'] = 0 if any([int(line[52]), int(line[53])]) else 1
     return data
 
 
