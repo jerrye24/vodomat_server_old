@@ -30,7 +30,7 @@ def get_event(number_of_event: int) -> str:
         17: 'Не исп оплата(нал)',
         18: 'Не исп оплата(без)',
     }
-    return events.get(number_of_event, number_of_event)
+    return events.get(number_of_event, str(number_of_event))
 
 
 def get_error(error: int) -> str:
@@ -51,8 +51,8 @@ def water_machine_nodes_health_status(data_dict: Dict, f: int, l: int) -> Dict:
     data_dict['ev_water'] = 'СБОЙ' if f in (1,3,7) else 'НОРМА' if f in allowed_values else 'error'
     data_dict['ev_volt'] = 'СБОЙ' if f in (2,3,6,7) else 'НОРМА' if f in allowed_values else 'error'
     data_dict['ev_bill'] = 'СБОЙ' if f in (4,5,6,7) else 'НОРМА' if f in allowed_values else 'error'
-    data_dict['ev_counter_water'] = 'СБОЙ' if l in (1,3,7) else 'НОРМА' if f in allowed_values else 'error'
-    data_dict['ev_register'] = 'СБОЙ' if l in (2,3,6,7) else 'НОРМА' if f in allowed_values else 'error'
+    data_dict['ev_counter_water'] = 'СБОЙ' if l in (1,3,7) else 'НОРМА' if l in allowed_values else 'error'
+    data_dict['ev_register'] = 'СБОЙ' if l in (2,3,6,7) else 'НОРМА' if l in allowed_values else 'error'
     return data_dict
 
 
